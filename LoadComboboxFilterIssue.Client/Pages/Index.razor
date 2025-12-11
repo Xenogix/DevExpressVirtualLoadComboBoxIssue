@@ -1,0 +1,61 @@
+﻿@page "/"
+@using DevExtreme.AspNet.Data
+@using DevExtreme.AspNet.Data.ResponseModel
+@using System.Collections
+@using System.Linq.Expressions
+@using System.Diagnostics
+
+@* Error message *@
+@if(errorOccured)
+{
+    <div style="color:red; margin-bottom:1rem; font-size: 1rem">
+        An error occurred while loading data. Please try again.
+    </div>
+}
+
+@* Combobox *@
+<DxComboBox TData="Item" 
+            TValue="Item"
+            KeyFieldName="@(nameof(Item.Id))"
+            CustomData="CustomDataProvider"
+            ListRenderMode="ListRenderMode.Virtual"
+            TextFieldName="@(nameof(Item.Name))"
+            SearchMode="ListSearchMode.AutoSearch" />
+
+@code {
+
+    // Simulated data source
+    IQueryable<Item> items = Enumerable.Range(1, 100000).Select(i => new Item {
+        Id = Guid.NewGuid(),
+        Name = $"Item {i}"
+    }).AsQueryable();
+
+    // Error flag
+    bool errorOccured = false;
+
+    async Task<LoadResult> CustomDataProvider(DataSourceLoadOptionsBase options, CancellationToken cancellationToken)
+    {
+        // Simulate API / Database roundtrip delay
+        await Task.Delay(500, cancellationToken);
+
+        // Load data
+        var result = await DataSourceLoader.LoadAsync(items, options, cancellationToken);
+
+        // Check for take 0 and non-count query
+        if (options.Take == 0 && !options.IsCountQuery)
+        {
+            errorOccured = true;
+            StateHasChanged();
+        }
+
+        return result;
+    }
+
+    // Custom item class with enumeration counting
+    class Item
+    {
+        // Properties
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+}
