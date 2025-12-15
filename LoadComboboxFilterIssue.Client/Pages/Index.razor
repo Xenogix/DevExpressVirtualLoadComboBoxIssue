@@ -4,58 +4,34 @@
 @using System.Collections
 @using System.Linq.Expressions
 @using System.Diagnostics
-
-@* Error message *@
-@if(errorOccured)
-{
-    <div style="color:red; margin-bottom:1rem; font-size: 1rem">
-        An error occurred while loading data. Please try again.
-    </div>
-}
+@using System.Net.Http.Json
+@using LoadComboboxFilterIssue.Database
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
 
 @* Combobox *@
-<DxComboBox TData="Item" 
-            TValue="Item"
-            KeyFieldName="@(nameof(Item.Id))"
+<DxComboBox TData="MyEntity" 
+            TValue="MyEntity"
+            KeyFieldName="@(nameof(MyEntity.Id))"
             CustomData="CustomDataProvider"
             ListRenderMode="ListRenderMode.Virtual"
-            TextFieldName="@(nameof(Item.Name))"
-            SearchMode="ListSearchMode.AutoSearch" />
+            TextFieldName="@(nameof(MyEntity.Name))"
+            SearchMode="ListSearchMode.AutoSearch"
+            SearchFilterCondition="ListSearchFilterCondition.Contains"
+            SearchDelay="500" />
 
 @code {
-
-    // Simulated data source
-    IQueryable<Item> items = Enumerable.Range(1, 100000).Select(i => new Item {
-        Id = Guid.NewGuid(),
-        Name = $"Item {i}"
-    }).AsQueryable();
-
-    // Error flag
-    bool errorOccured = false;
-
     async Task<LoadResult> CustomDataProvider(DataSourceLoadOptionsBase options, CancellationToken cancellationToken)
     {
-        // Simulate API / Database roundtrip delay
+        // Add a small delay to simulate network latency
         await Task.Delay(500, cancellationToken);
 
-        // Load data
-        var result = await DataSourceLoader.LoadAsync(items, options, cancellationToken);
+        // Call the controller endpoint
+        var url = new Uri(new Uri(NavigationManager.BaseUri), "combobox");
+        var result = await HttpClient.PostAsJsonAsync(url, options, cancellationToken);
+        result.EnsureSuccessStatusCode();
 
-        // Check for take 0 and non-count query
-        if (options.Take == 0 && !options.IsCountQuery)
-        {
-            errorOccured = true;
-            StateHasChanged();
-        }
-
-        return result;
-    }
-
-    // Custom item class with enumeration counting
-    class Item
-    {
-        // Properties
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
+        // Serialize the response content
+        return await result.Content.ReadFromJsonAsync<LoadResult>(cancellationToken) ?? new();
     }
 }
