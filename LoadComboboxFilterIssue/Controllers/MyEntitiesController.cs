@@ -2,11 +2,12 @@
 using DevExtreme.AspNet.Data.ResponseModel;
 using LoadComboboxFilterIssue.Shared.Database;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LoadComboboxFilterIssue.Controllers
 {
     [ApiController]
-    [Route("")]
+    [Route("entities")]
     public class MyEntitiesController(MyDbContext dbContext) : ControllerBase
     {
         [HttpPost("combobox")]

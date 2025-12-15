@@ -16,6 +16,9 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<MyDbContext>();
 builder.Services.AddHttpClient();
 
+// Suppress logs from HTTP Client
+builder.Logging.AddFilter("System.Net.Http.HttpClient", LogLevel.None);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

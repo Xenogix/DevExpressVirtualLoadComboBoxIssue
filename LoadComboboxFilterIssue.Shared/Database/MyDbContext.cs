@@ -1,5 +1,6 @@
 ﻿using LoadComboboxFilterIssue.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace LoadComboboxFilterIssue.Shared.Database
 {
@@ -9,7 +10,11 @@ namespace LoadComboboxFilterIssue.Shared.Database
 
         public string DbPath = AppDomain.CurrentDomain.BaseDirectory ?? throw new InvalidOperationException("Cannot determine assembly location.");
 
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
-            => options.UseSqlite($"Data Source={Path.Join(DbPath, "my.db")}");
+        protected override void OnConfiguring(DbContextOptionsBuilder options) {
+            options.UseSqlite($"Data Source={Path.Join(DbPath, "my.db")}");
+            // Log only database command-related messages
+            options.LogTo(Console.WriteLine, [DbLoggerCategory.Database.Command.Name], LogLevel.Information)
+                   .EnableSensitiveDataLogging();
+        }
     }
 }

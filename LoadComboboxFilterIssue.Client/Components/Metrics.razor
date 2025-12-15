@@ -1,0 +1,15 @@
+﻿@using LoadComboboxFilterIssue.Shared.Models
+@using DevExpress.Blazor
+@using System.Threading
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+@if (memory is not null)
+{
+    <ul>
+        <li>WorkingSet: @FormatBytes(memory.WorkingSetBytes)</li>
+        <li>TotalAllocated: @FormatBytes(memory.TotalAllocatedBytes)</li>
+    </ul>
+}
+
+
